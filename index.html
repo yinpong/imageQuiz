@@ -62,26 +62,27 @@
             });
         }
 
-function initializeApp() {
-    try {
-        const accessToken = document.getElementById('accessToken').value;
-        if (!accessToken) {
-            throw new Error('Access token is required');
-        }
+        function initializeApp() {
+            try {
+                const accessToken = document.getElementById('accessToken').value;
+                if (!accessToken) {
+                    throw new Error('Access token is required');
+                }
 
-        if (typeof Dropbox === 'undefined') {
-            throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
-        }
+                if (typeof Dropbox === 'undefined') {
+                    throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
+                }
 
-        dbx = new Dropbox.Dropbox({ accessToken });
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('quizArea').style.display = 'block';
-        nextImage();
-        testDropboxAPI(); // Add this line
-    } catch (error) {
-        logError('Initialization error: ' + error.message);
-    }
-}
+                dbx = new Dropbox.Dropbox({ accessToken });
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('quizArea').style.display = 'block';
+                nextImage();
+                  testDropboxAPI(); // Add this line
+            } catch (error) {
+                logError('Initialization error: ' + error.message);
+            }
+        }
+      
 
         
 async function nextImage() {
