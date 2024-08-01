@@ -80,6 +80,7 @@
                 document.getElementById('quizArea').style.display = 'block';
                 await nextImage();
                 testDropboxAPI();
+                checkTokenScopes();
             } catch (error) {
                 logError('Initialization error: ' + error.message);
                 if (error instanceof TypeError) {
@@ -92,29 +93,45 @@
 async function nextImage() {
     try {
         console.log('Attempting to list folder contents...');
-        // Try App Folder access first
-        let response = await dbx.filesListFolder({ path: '/Apps/Claude Image revision quiz test' });
-        
-        // If that fails, try Full Dropbox access
-        if (!response || !response.result || !response.result.entries) {
-            response = await dbx.filesListFolder({ path: '/Claude Image revision quiz test' });
+        let response;
+        try {
+            response = await dbx.filesListFolder({ path: '/Apps/Claude Image revision quiz test' });
+            console.log('Successfully listed folder contents:', response);
+        } catch (folderError) {
+            console.error('Error listing folder:', folderError);
+            logError('Folder listing error: ' + folderError.message);
+            if (folderError.status) {
+                logError('Folder listing error status: ' + folderError.status);
+            }
+            throw folderError;
         }
-        
-        console.log('Folder contents:', response.result.entries);
+
         const images = response.result.entries.filter(entry => entry.name.match(/\.(jpeg|jpg|png|gif)$/i));
         if (images.length === 0) {
             throw new Error('No images found in the Dropbox folder');
         }
         currentImage = images[Math.floor(Math.random() * images.length)];
         console.log('Selected image:', currentImage);
+
         console.log('Attempting to get temporary link...');
-        const imageLink = await dbx.filesGetTemporaryLink({ path: currentImage.path_lower });
-        console.log('Image link:', imageLink.result.link);
+        let imageLink;
+        try {
+            imageLink = await dbx.filesGetTemporaryLink({ path: currentImage.path_lower });
+            console.log('Successfully got temporary link:', imageLink);
+        } catch (linkError) {
+            console.error('Error getting temporary link:', linkError);
+            logError('Temporary link error: ' + linkError.message);
+            if (linkError.status) {
+                logError('Temporary link error status: ' + linkError.status);
+            }
+            throw linkError;
+        }
+
         document.getElementById('quizImage').src = imageLink.result.link;
         applyCoverAreas();
     } catch (error) {
-        console.error('Detailed error:', error);
-        logError('Error fetching image: ' + error.message);
+        console.error('Overall error in nextImage:', error);
+        logError('Error in nextImage: ' + error.message);
         if (error.status) {
             logError('Error status: ' + error.status);
         }
@@ -159,7 +176,19 @@ async function testDropboxAPI() {
     }
 }
 
+async function checkTokenScopes() {
+    try {
+        const response = await dbx.checkUser({});
+        console.log('Token scopes:', response.scopes);
+        logError('Token scopes: ' + response.scopes.join(', '));
+    } catch (error) {
+        console.error('Error checking token scopes:', error);
+        logError('Error checking token scopes: ' + error.message);
+    }
+}
 
+// Add this line at the end of your initializeApp function
+checkTokenScopes();
 
         
     </script>
