@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Quiz App</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #quizArea, #errorLog { display: none; }
+        #imageContainer { position: relative; max-width: 100%; height: 400px; }
+        #quizImage { max-width: 100%; max-height: 100%; display: block; margin: 0 auto; }
+        .cover { position: absolute; background-color: rgba(0,0,0,0.7); }
+        button { margin: 10px 0; padding: 10px; }
+        #errorLog { margin-top: 20px; color: red; }
+    </style>
+</head>
+<body>
+    <h1>Image Quiz App</h1>
+    <div id="setup">
+        <p>Enter your Dropbox access token:</p>
+        <input type="text" id="accessToken">
+        <button onclick="initializeApp()">Start Quiz</button>
+    </div>
+    <div id="quizArea">
+        <div id="imageContainer">
+            <img id="quizImage" alt="Quiz Image">
+        </div>
+        <button onclick="revealImage()">Reveal Image</button>
+        <button onclick="nextImage()">Next Image</button>
+    </div>
+    <div id="errorLog"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox/10.34.0/Dropbox-sdk.min.js"></script>
+    <script>
+        let dbx;
+        let currentImage;
+        let coverAreas = {
+            // Define cover areas for each image here
+            'image1.jpg': [
+                { left: '10%', top: '20%', width: '30%', height: '25%' },
+                { left: '50%', top: '60%', width: '40%', height: '30%' }
+            ],
+            'image2.jpg': [
+                { left: '5%', top: '10%', width: '50%', height: '40%' }
+            ]
+            // Add more images and their cover areas as needed
+        };
+
+        function logError(message) {
+            console.error(message);
+            const errorLog = document.getElementById('errorLog');
+            errorLog.style.display = 'block';
+            errorLog.innerHTML += message + '<br>';
+        }
+
+        function initializeApp() {
+            try {
+                const accessToken = document.getElementById('accessToken').value;
+                if (!accessToken) {
+                    throw new Error('Access token is required');
+                }
+                if (typeof Dropbox === 'undefined') {
+                    throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
+                }
+                dbx = new Dropbox.Dropbox({ accessToken });
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('quizArea').style.display = 'block';
+                nextImage();
+            } catch (error) {
+                logError('Initialization error: ' + error.message);
+            }
+        }
+
+        async function nextImage() {
+            try {
+                const response = await dbx.filesListFolder({ path: '' });
+                console.log('Folder contents:', response.result.entries);
+                const images = response.result.entries.filter(entry => entry.name.match(/\.(jpeg|jpg|png|gif)$/i));
+                if (images.length === 0) {
+                    throw new Error('No images found in the Dropbox folder');
+                }
+                currentImage = images[Math.floor(Math.random() * images.length)];
+                console.log('Selected image:', currentImage);
+                const imageLink = await dbx.filesGetTemporaryLink({ path: currentImage.path_lower });
+                console.log('Image link:', imageLink.result.link);
+                document.getElementById('quizImage').src = imageLink.result.link;
+                applyCoverAreas();
+            } catch (error) {
+                logError('Error fetching image: ' + error.message);
+            }
+        }
+
+        function applyCoverAreas() {
+            const container = document.getElementById('imageContainer');
+            container.querySelectorAll('.cover').forEach(el => el.remove());
+            
+            const areas = coverAreas[currentImage.name] || [];
+            areas.forEach(area => {
+                const cover = document.createElement('div');
+                cover.className = 'cover';
+                Object.assign(cover.style, area);
+                container.appendChild(cover);
+            });
+        }
+
+        function revealImage() {
+            document.getElementById('imageContainer').querySelectorAll('.cover').forEach(el => el.remove());
+        }
+    </script>
+</body>
+</html>
