@@ -79,7 +79,7 @@
                 document.getElementById('setup').style.display = 'none';
                 document.getElementById('quizArea').style.display = 'block';
                 await nextImage();
-                testdropboxAPI();
+                testDropboxAPI();
             } catch (error) {
                 logError('Initialization error: ' + error.message);
                 if (error instanceof TypeError) {
