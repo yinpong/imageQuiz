@@ -62,49 +62,53 @@
             });
         }
 
-        async function initializeApp() {
-            try {
-                const accessToken = document.getElementById('accessToken').value;
-                if (!accessToken) {
-                    throw new Error('Access token is required');
-                }
-
-                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/10.34.0/Dropbox-sdk.min.js');
-                
-                if (typeof Dropbox === 'undefined') {
-                    throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
-                }
-
-                dbx = new Dropbox.Dropbox({ accessToken });
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('quizArea').style.display = 'block';
-                await nextImage();
-            } catch (error) {
-                logError('Initialization error: ' + error.message);
-                if (error instanceof TypeError) {
-                    logError('Additional info: This might be due to a CORS issue. Try accessing the app through a web server.');
-                }
-            }
+function initializeApp() {
+    try {
+        const accessToken = document.getElementById('accessToken').value;
+        if (!accessToken) {
+            throw new Error('Access token is required');
         }
 
-        async function nextImage() {
-            try {
-                const response = await dbx.filesListFolder({ path: '' });
-                console.log('Folder contents:', response.result.entries);
-                const images = response.result.entries.filter(entry => entry.name.match(/\.(jpeg|jpg|png|gif)$/i));
-                if (images.length === 0) {
-                    throw new Error('No images found in the Dropbox folder');
-                }
-                currentImage = images[Math.floor(Math.random() * images.length)];
-                console.log('Selected image:', currentImage);
-                const imageLink = await dbx.filesGetTemporaryLink({ path: currentImage.path_lower });
-                console.log('Image link:', imageLink.result.link);
-                document.getElementById('quizImage').src = imageLink.result.link;
-                applyCoverAreas();
-            } catch (error) {
-                logError('Error fetching image: ' + error.message);
-            }
+        if (typeof Dropbox === 'undefined') {
+            throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
         }
+
+        dbx = new Dropbox.Dropbox({ accessToken });
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('quizArea').style.display = 'block';
+        nextImage();
+        testDropboxAPI(); // Add this line
+    } catch (error) {
+        logError('Initialization error: ' + error.message);
+    }
+}
+async function nextImage() {
+    try {
+        console.log('Attempting to list folder contents...');
+        const response = await dbx.filesListFolder({ path: '' });
+        console.log('Folder contents:', response.result.entries);
+        const images = response.result.entries.filter(entry => entry.name.match(/\.(jpeg|jpg|png|gif)$/i));
+        if (images.length === 0) {
+            throw new Error('No images found in the Dropbox folder');
+        }
+        currentImage = images[Math.floor(Math.random() * images.length)];
+        console.log('Selected image:', currentImage);
+        console.log('Attempting to get temporary link...');
+        const imageLink = await dbx.filesGetTemporaryLink({ path: currentImage.path_lower });
+        console.log('Image link:', imageLink.result.link);
+        document.getElementById('quizImage').src = imageLink.result.link;
+        applyCoverAreas();
+    } catch (error) {
+        console.error('Detailed error:', error);
+        logError('Error fetching image: ' + error.message);
+        if (error.status) {
+            logError('Error status: ' + error.status);
+        }
+        if (error.response) {
+            logError('Error response: ' + JSON.stringify(error.response));
+        }
+    }
+}
 
         function applyCoverAreas() {
             const container = document.getElementById('imageContainer');
@@ -122,6 +126,28 @@
         function revealImage() {
             document.getElementById('imageContainer').querySelectorAll('.cover').forEach(el => el.remove());
         }
+async function testDropboxAPI() {
+    try {
+        const response = await dbx.usersGetCurrentAccount();
+        console.log('API Test Successful:', response);
+        logError('API Test Successful: ' + JSON.stringify(response));
+    } catch (error) {
+        console.error('API Test Failed:', error);
+        logError('API Test Failed: ' + error.message);
+        if (error.status) {
+            logError('Error status: ' + error.status);
+        }
+        if (error.response) {
+            logError('Error response: ' + JSON.stringify(error.response));
+        }
+    }
+}
+
+// Add this line at the end of your initializeApp function
+testDropboxAPI();
+
+
+        
     </script>
 </body>
 </html>
