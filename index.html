@@ -82,6 +82,8 @@ function initializeApp() {
         logError('Initialization error: ' + error.message);
     }
 }
+
+        
 async function nextImage() {
     try {
         console.log('Attempting to list folder contents...');
@@ -126,6 +128,8 @@ async function nextImage() {
         function revealImage() {
             document.getElementById('imageContainer').querySelectorAll('.cover').forEach(el => el.remove());
         }
+
+        
 async function testDropboxAPI() {
     try {
         const response = await dbx.usersGetCurrentAccount();
@@ -143,8 +147,6 @@ async function testDropboxAPI() {
     }
 }
 
-// Add this line at the end of your initializeApp function
-testDropboxAPI();
 
 
         
