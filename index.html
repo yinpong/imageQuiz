@@ -30,7 +30,6 @@
     </div>
     <div id="errorLog"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/10.34.0/Dropbox-sdk.min.js"></script>
     <script>
         let dbx;
         let currentImage;
@@ -53,13 +52,25 @@
             errorLog.innerHTML += message + '<br>';
         }
 
-        function initializeApp() {
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+                document.body.appendChild(script);
+            });
+        }
+
+        async function initializeApp() {
             try {
                 const accessToken = document.getElementById('accessToken').value;
                 if (!accessToken) {
                     throw new Error('Access token is required');
                 }
 
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/10.34.0/Dropbox-sdk.min.js');
+                
                 if (typeof Dropbox === 'undefined') {
                     throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
                 }
@@ -67,9 +78,12 @@
                 dbx = new Dropbox.Dropbox({ accessToken });
                 document.getElementById('setup').style.display = 'none';
                 document.getElementById('quizArea').style.display = 'block';
-                nextImage();
+                await nextImage();
             } catch (error) {
                 logError('Initialization error: ' + error.message);
+                if (error instanceof TypeError) {
+                    logError('Additional info: This might be due to a CORS issue. Try accessing the app through a web server.');
+                }
             }
         }
 
