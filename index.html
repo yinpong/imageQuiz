@@ -95,7 +95,7 @@ async function nextImage() {
         console.log('Attempting to list folder contents...');
         let response;
         try {
-            response = await dbx.filesListFolder({ path: '/Apps/Claude Image revision quiz test' });
+            response = await dbx.filesListFolder({ path: 'Apps/Claude Image revision quiz test' });
             console.log('Successfully listed folder contents:', response);
         } catch (folderError) {
             console.error('Error listing folder:', folderError);
