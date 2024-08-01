@@ -75,7 +75,7 @@
                     throw new Error('Dropbox SDK not loaded. Please check your internet connection and try again.');
                 }
 
-                dbx = new Dropbox.Dropbox({ accessToken });
+        dbx = new Dropbox.Dropbox({ auth: new Dropbox.DropboxAuth({ accessToken }) });
                 document.getElementById('setup').style.display = 'none';
                 document.getElementById('quizArea').style.display = 'block';
                 await nextImage();
@@ -187,6 +187,19 @@ async function checkTokenScopes() {
     }
 }
 
+async function testListFolder() {
+    try {
+        const response = await dbx.filesListFolder({ path: '' });
+        console.log('Folder contents:', response.result.entries);
+        logError('Successfully listed folder contents');
+    } catch (error) {
+        console.error('Error listing folder:', error);
+        logError('Error listing folder: ' + error.message);
+        if (error.status) {
+            logError('Error status: ' + error.status);
+        }
+    }
+}
 
         
     </script>
