@@ -92,7 +92,14 @@
 async function nextImage() {
     try {
         console.log('Attempting to list folder contents...');
-        const response = await dbx.filesListFolder({ path: '' });
+        // Try App Folder access first
+        let response = await dbx.filesListFolder({ path: '/Apps/Claude Image revision quiz test' });
+        
+        // If that fails, try Full Dropbox access
+        if (!response || !response.result || !response.result.entries) {
+            response = await dbx.filesListFolder({ path: '/your-app-name' });
+        }
+        
         console.log('Folder contents:', response.result.entries);
         const images = response.result.entries.filter(entry => entry.name.match(/\.(jpeg|jpg|png|gif)$/i));
         if (images.length === 0) {
