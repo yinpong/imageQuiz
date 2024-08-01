@@ -189,7 +189,7 @@ async function checkTokenScopes() {
 
 async function testListFolder() {
     try {
-        const response = await dbx.filesListFolder({ path: '' });
+        const response = await dbx.filesListFolder({ path: 'Apps/Claude Image revision quiz test' });
         console.log('Folder contents:', response.result.entries);
         logError('Successfully listed folder contents');
     } catch (error) {
