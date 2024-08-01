@@ -97,7 +97,7 @@ async function nextImage() {
         
         // If that fails, try Full Dropbox access
         if (!response || !response.result || !response.result.entries) {
-            response = await dbx.filesListFolder({ path: '/your-app-name' });
+            response = await dbx.filesListFolder({ path: '/Claude Image revision quiz test' });
         }
         
         console.log('Folder contents:', response.result.entries);
